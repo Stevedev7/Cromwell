@@ -34,14 +34,13 @@ const Login = () => {
 						<Form>
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
-									<TextField className='form' id="outlined-basic" label="Email" variant="outlined" type='email' />
+									<TextField className='form' label="Email" variant="outlined" type='email' />
 								</Grid>
 							</Grid>
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
 									<TextField
 										className='form'
-										id="outlined-basic"
 										label="Password"
 										variant="outlined"
 										type={visible ? 'password' : 'text'}
@@ -57,9 +56,9 @@ const Login = () => {
 									/>
 								</Grid>
 							</Grid>
-							<Grid item style={{ marginTop: 10 }}>
+							<Grid item sx={{ marginTop: 10 }}>
 								<Button
-									style={{
+									sx={{
 										color: disabled ? 'rgba(0, 0, 0, 0.26)' : 'white',
 										backgroundColor: disabled ? '#e0e0e0' : '#ff5100',
 										height: 55,

@@ -23,7 +23,7 @@ const Header = () => {
 						className={isMobile ? "logo-mobile" : "logo"}
 						onClick={() => navigate("/")}
 					/>
-					<Link href='/login' className='nav-icon-button' sx={{ textDecoration: 'none', textDecorationColor: '#ff5100' }}>
+					<Link href='/login' color='#ff5100' className='nav-icon-button' sx={{ textDecoration: 'none', textDecorationColor: '#ff5100' }}>
 						<img src={accountIcon} style={isMobile ? { maxHeight: 15 } : { maxHeight: 26 }} />
 						<p className='my-account'></p>
 						<p className='login-register' >Log in / Register</p>
