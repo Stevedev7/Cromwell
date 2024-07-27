@@ -1,0 +1,13 @@
+.form {
+  width: 100%;
+}
+
+.form-header {
+  height: 56px;
+}
+
+.form-header h3 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 8px 0 16px 0;
+}

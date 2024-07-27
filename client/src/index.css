@@ -7,4 +7,16 @@
 body {
   color: #4a4a4a;
   font-family: sans-serif;
+  line-height: 1.5;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8rem;
+}
+
+a:hover {
+  text-decoration: underline;
 }

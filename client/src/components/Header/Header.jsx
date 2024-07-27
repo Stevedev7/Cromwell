@@ -1,17 +1,18 @@
-import { AppBar, Box, IconButton, useMediaQuery, useTheme } from '@mui/material'
-import { Link, Outlet } from 'react-router-dom'
+import { AppBar, Box, IconButton, Link, useMediaQuery, useTheme } from '@mui/material'
+import { Outlet, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.svg'
 import logoMobile from '../../assets/logo-mobile.svg'
 import accountIcon from '../../assets/account.svg'
 import './Header.css';
 
-const Logo = ({ image, className = "" }) => {
-	return <img src={image} alt="Logo" className={className} />
+const Logo = ({ image, className = "", onClick }) => {
+	return <img style={{ cursor: 'pointer' }} src={image} alt="Logo" className={className} onClick={onClick} />
 }
 
 const Header = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+	const navigate = useNavigate();
 
 	return (
 		<>
@@ -20,8 +21,9 @@ const Header = () => {
 					<Logo
 						image={isMobile ? logoMobile : logo}
 						className={isMobile ? "logo-mobile" : "logo"}
+						onClick={() => navigate("/")}
 					/>
-					<Link to='/login' className='nav-icon-button'>
+					<Link href='/login' className='nav-icon-button' sx={{ textDecoration: 'none', textDecorationColor: '#ff5100' }}>
 						<img src={accountIcon} style={isMobile ? { maxHeight: 15 } : { maxHeight: 26 }} />
 						<p className='my-account'></p>
 						<p className='login-register' >Log in / Register</p>
