@@ -1,0 +1,81 @@
+.logo {
+	max-height: 50px;
+}
+
+.logo-mobile {
+	max-height: 30px;
+}
+
+.nav-bar {
+	height: 95px;
+	display: flex;
+	justify-content: center;
+	padding: 10px 6px;
+}
+
+.nav-icon-button {
+	display: flex;
+	flex-direction: column;
+	text-decoration: none;
+}
+
+.login-register {
+	font-size: 10px;
+	text-align: center;
+	color: #ff5100;
+}
+
+.my-account {
+	color: #4a4a4a;
+	font-size: 14px;
+	line-break: 1.5;
+	letter-spacing: 0.2px;
+	text-align: center;
+}
+
+.nav-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+@media (max-width: 600px) {
+	.nav-bar {
+		height: 60px;
+	}
+
+	.login-register {
+		display: none;
+	}
+
+	.my-account {
+		font-size: 0.7rem;
+	}
+
+	.my-account::after {
+		content: 'Account';
+	}
+}
+
+@media (max-width: 900px) and (min-width: 601px) {
+	.my-account {
+		font-size: 14px;
+		line-height: 1.5;
+		letter-spacing: 0.2px;
+		text-align: center;
+	}
+
+	.my-account::after {
+		content: 'Account';
+	}
+
+	.login-register {
+		display: none;
+	}
+}
+
+@media (min-width: 901px) {
+	.my-account::after {
+		content: 'My Account';
+	}
+}
