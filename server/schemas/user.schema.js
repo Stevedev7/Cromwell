@@ -19,7 +19,8 @@ const registerSchema = Joi.object({
 	password: Joi.string()
 		.required()
 		.min(8)
-		.max(25),
+		.max(25)
+		.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
 	confirmPassword: Joi.ref('password')
 });
 
@@ -33,8 +34,6 @@ const loginSchema = Joi.object({
 		.required(),
 	password: Joi.string()
 		.required()
-		.min(8)
-		.max(25)
 });
 
 module.exports = {

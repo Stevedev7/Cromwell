@@ -1,15 +1,128 @@
-import { Box, Button, Grid, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material'
+import { Box, Button, Grid, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { Form } from 'react-router-dom'
-import { useState } from 'react';
+import CheckIcon from '@mui/icons-material/Check';
+import { Form, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRegisterMutation } from '../../redux/slices/userApiSlice';
+import { setAuthenticated, setToken } from '../../redux/slices/authSlice';
+import { showSnackBar } from '../../redux/slices/snackBarSlice';
+import { useLoginMutation } from '../../redux/slices/authApiSlice';
 
 const Register = () => {
 
 	const [visible, setVisible] = useState(false);
 	const [visibleConfirmPassword, setVisibleConfirmPassword] = useState(false);
-	const [disabled, setDisabled] = useState(true);
+	const { isAuthenticated } = useSelector(store => store.auth);
+
+
+
+	// States for form data
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+
+	// State to check password and confirm password matches;
+	const [isPasswordMatch, setIsPasswordMatch] = useState(false);
+
+	// States to check password validation
+	const [has8Characters, setHas8Characters] = useState(false);
+	const [hasUpperCase, setHasUppsecase] = useState(false);
+	const [hasLowerCase, setHasLowercase] = useState(false);
+	const [hasNumber, sethasNumber] = useState(false);
+
+	const navigate = useNavigate();
+	const dispatch = useDispatch();
+	const [register] = useRegisterMutation();
+	const [login] = useLoginMutation();
+
+
+
+	const validatePassword = (password) => {
+		const has8Characters = password.length >= 8;
+		const hasUpperCase = /[A-Z]/.test(password);
+		const hasLowerCase = /[a-z]/.test(password);
+		const hasNumber = /[0-9]/.test(password);
+		setHas8Characters(has8Characters);
+		setHasUppsecase(hasUpperCase);
+		setHasLowercase(hasLowerCase);
+		sethasNumber(hasNumber);
+	};
+
+	const handlePasswordChange = (e) => {
+		const password = e.target.value;
+		setPassword(password);
+		validatePassword(password);
+	};
+
+	const handleConfirmPasswordChange = (e) => {
+		const confirmPassword = e.target.value;
+		setConfirmPassword(confirmPassword);
+		setIsPasswordMatch(password === confirmPassword);
+	};
+
+	const getValidationIcon = (isValid) => {
+		return isValid ? <CheckIcon sx={{ marginRight: '10px', color: '#ff5100' }} /> : <ErrorOutlineIcon sx={{ marginRight: '10px' }} />;
+	};
+
+	const buttonDisable = () => !(firstName.length > 0 && lastName.length > 0 && email.length > 0 && isPasswordMatch && has8Characters && hasUpperCase && hasLowerCase && hasNumber)
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		register({
+			firstName,
+			lastName,
+			email,
+			password,
+			confirmPassword
+		})
+			.then(res => {
+				if (res.error) {
+					throw new Error(res.error.data.error.message)
+				}
+				return res.data
+			})
+			.then(({ _id }) => {
+				login({ email, password })
+					.then(res => {
+						if (res.error) {
+							throw new Error(res.error.data.error.message)
+						}
+						return res.data
+					})
+					.then(({ token }) => {
+						dispatch(setToken(token));
+						dispatch(setAuthenticated(true));
+						dispatch(showSnackBar({
+							severity: "success",
+							message: "Successfully created an online account"
+						}));
+						navigate("/")
+					})
+					.catch(e => {
+						dispatch(showSnackBar({
+							severity: "error",
+							message: e.message
+						}))
+					});
+			})
+			.catch(e => {
+				dispatch(showSnackBar({
+					severity: "error",
+					message: e.message
+				}))
+			});
+	}
+
+	useEffect(() => {
+		if (isAuthenticated) {
+			navigate("/user");
+		}
+	}, [isAuthenticated]);
 
 	return (
 		<Box className='form-container' flex>
@@ -22,13 +135,13 @@ const Register = () => {
 				<Grid className='form-text' item sx={{ padding: 0 }} >
 					<Typography variant='p'>
 						We will use this information to secure your account and provides access via www.cromwell.co.uk.{" "}
-						<Link href='/login' color='#ff5100' sx={{ textDecoration: 'none' }} >
+						<Link href='/login' color='#ff5100' sx={{ textDecoration: 'none' }} onClick={(e) => { navigate("/login"); e.preventDefault() }}>
 							Already have an online account? Log in here
 						</Link>
 					</Typography>
 				</Grid>
 				<Grid item container spacing={1} >
-					<Form>
+					<Form onSubmit={handleSubmit}>
 						<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 							{/* First name */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
@@ -38,7 +151,8 @@ const Register = () => {
 									label="First Name"
 									variant="outlined"
 									type='text'
-									helperText="First Name Required"
+									onChange={e => setFirstName(e.target.value)}
+									value={firstName}
 								/>
 							</Grid>
 							{/* Last name */}
@@ -49,7 +163,8 @@ const Register = () => {
 									label="Last Name"
 									variant="outlined"
 									type='text'
-									helperText="Last Name Required"
+									onChange={(e) => setLastName(e.target.value)}
+									value={lastName}
 								/>
 							</Grid>
 
@@ -61,7 +176,8 @@ const Register = () => {
 									label="Email"
 									variant="outlined"
 									type='email'
-									helperText="Email Required"
+									onChange={(e) => setEmail(e.target.value)}
+									value={email}
 								/>
 							</Grid>
 							<Grid item sx={{ width: 400, padding: 0 }}>
@@ -71,22 +187,22 @@ const Register = () => {
 								</Typography>
 
 								<Box sx={{ display: 'flex', alignItems: 'center' }} >
-									<ErrorOutlineIcon sx={{ marginRight: '10px' }} />
+									{getValidationIcon(has8Characters)}
 									<Typography variant='p' color='#1976d2' >8 characters</Typography>
 								</Box>
 
 								<Box sx={{ display: 'flex', alignItems: 'center' }} flex>
-									<ErrorOutlineIcon sx={{ marginRight: '10px' }} />
+									{getValidationIcon(hasUpperCase)}
 									<Typography variant='p' color='#1976d2' >1 uppercase letter</Typography>
 								</Box>
 
 								<Box sx={{ display: 'flex', alignItems: 'center' }}>
-									<ErrorOutlineIcon sx={{ marginRight: '10px' }} />
+									{getValidationIcon(hasLowerCase)}
 									<Typography variant='p' color='#1976d2' >1 lowercase letter</Typography>
 								</Box>
 
 								<Box sx={{ display: 'flex', alignItems: 'center' }}>
-									<ErrorOutlineIcon sx={{ marginRight: '10px' }} />
+									{getValidationIcon(hasNumber)}
 									<Typography variant='p' color='#1976d2' >1 number</Typography>
 								</Box>
 							</Grid>
@@ -96,7 +212,10 @@ const Register = () => {
 									className='form'
 									label="Password"
 									variant="outlined"
-									type={visible ? 'password' : 'text'}
+									type={visible ? 'text' : 'password'}
+									onChange={handlePasswordChange}
+									value={password}
+									// Password show icon
 									InputProps={{
 										endAdornment: (
 											<InputAdornment position="end">
@@ -115,11 +234,14 @@ const Register = () => {
 									className='form'
 									label="Confirm Password"
 									variant="outlined"
-									type={visible ? 'password' : 'text'}
+									type={visibleConfirmPassword ? 'text' : 'password'}
+									onChange={handleConfirmPasswordChange}
+									value={confirmPassword}
+									// Password show icon
 									InputProps={{
 										endAdornment: (
 											<InputAdornment position="end">
-												<IconButton onClick={() => setVisible(!visibleConfirmPassword)} >
+												<IconButton onClick={() => setVisibleConfirmPassword(!visibleConfirmPassword)} >
 													{visibleConfirmPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
 												</IconButton>
 											</InputAdornment>
@@ -131,14 +253,18 @@ const Register = () => {
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<Button
 									sx={{
-										color: disabled ? 'rgba(0, 0, 0, 0.26)' : 'white',
-										backgroundColor: disabled ? '#e0e0e0' : '#ff5100',
+										color: buttonDisable() ? 'rgba(0, 0, 0, 0.26)' : 'white',
+										backgroundColor: buttonDisable() ? '#e0e0e0' : '#ff5100',
 										height: 55,
 										padding: '6px 16px',
 										width: '100%',
-										fontSize: '1rem'
+										fontSize: '1rem',
+										':hover': {
+											bgcolor: '#b23800'
+										}
 									}}
-									disabled={disabled}
+									type='submit'
+									disabled={buttonDisable()}
 								>
 									Register</Button>
 							</Grid>

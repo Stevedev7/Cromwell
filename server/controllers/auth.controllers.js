@@ -13,7 +13,7 @@ const login = async (req, res, next) => {
 		if (!user) {
 			return res.status(401).json({
 				error: {
-					message: "Invalid Credentials"
+					message: "User does not exist."
 				}
 			});
 		}

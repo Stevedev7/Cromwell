@@ -1,16 +1,17 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import Login from './components/Login'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import Login from './components/Login';
+import './index.css';
 import {
   createBrowserRouter,
   RouterProvider,
-} from "react-router-dom"
-import Header from './components/Header'
-import Register from './components/Register'
-import { store } from './redux/store'
-import { Provider } from 'react-redux'
+} from "react-router-dom";
+import Header from './components/Header';
+import Register from './components/Register';
+import { store } from './redux/store';
+import { Provider } from 'react-redux';
+import Account from './components/Account';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,12 @@ const router = createBrowserRouter([
         path: "/register",
         element: <div className='container'>
           <Register />
+        </div>
+      },
+      {
+        path: "/user",
+        element: <div className='container'>
+          <Account />
         </div>
       }
     ]
