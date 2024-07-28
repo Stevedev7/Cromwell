@@ -10,6 +10,7 @@ import { useRegisterMutation } from '../../redux/slices/userApiSlice';
 import { setAuthenticated, setToken } from '../../redux/slices/authSlice';
 import { showSnackBar } from '../../redux/slices/snackBarSlice';
 import { useLoginMutation } from '../../redux/slices/authApiSlice';
+import { EMAIL_REGEX } from '../../constants';
 
 const Register = () => {
 
@@ -35,12 +36,18 @@ const Register = () => {
 	const [hasLowerCase, setHasLowercase] = useState(false);
 	const [hasNumber, sethasNumber] = useState(false);
 
+	const [errors, setErrors] = useState({
+		firstName: null,
+		lastName: null,
+		email: null,
+		password: null,
+		confirmPassword: null
+	});
+
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const [register] = useRegisterMutation();
 	const [login] = useLoginMutation();
-
-
 
 	const validatePassword = (password) => {
 		const has8Characters = password.length >= 8;
@@ -53,16 +60,108 @@ const Register = () => {
 		sethasNumber(hasNumber);
 	};
 
+	const firstNameValidation = () => {
+		if (firstName.length === 0) {
+			setErrors({ ...errors, firstName: "First Name Required" });
+		} else {
+			setErrors({ ...errors, firstName: null });
+		}
+		return firstName.length !== 0;
+	}
+
+	const lastNameValidation = () => {
+		if (lastName.length === 0) {
+			setErrors({ ...errors, lastName: "Last Name Required" });
+		} else {
+			setErrors({ ...errors, lastName: null });
+		}
+		return lastName.length !== 0;
+	}
+
+	const emailValidation = () => {
+		if (email.length === 0) {
+			setErrors({ ...errors, email: "Email Required" });
+		} else if (!EMAIL_REGEX.test(email)) {
+			setErrors({ ...errors, email: "Invalid Email Format" });
+		} else {
+			setErrors({ ...errors, email: null });
+		}
+		return email.length !== 0 && EMAIL_REGEX.test(email);
+	}
+
+	const passwordValidation = () => {
+		if (password.length === 0) {
+			setErrors({ ...errors, password: "New Password Required" });
+		}
+		if (!has8Characters) {
+			setErrors({ ...errors, password: "New Password too short" });
+		}
+		if (!hasUpperCase) {
+			setErrors({ ...errors, password: "Must contain a uppercase letter" })
+		}
+		if (!hasLowerCase) {
+			setErrors({ ...errors, password: "Must contain a lowercase letter" })
+		}
+		if (!hasNumber) {
+			setErrors({ ...errors, password: "Must contain a number" })
+		}
+		if (password.length !== 0) {
+			setErrors({ ...errors, password: null });
+		}
+		return !errors.password;
+	}
+
+	const confirmPasswordValidation = () => {
+		if (confirmPassword.length === 0) {
+			setErrors({ ...errors, confirmPassword: "New Confirm Password Required" });
+		}
+		if (confirmPassword.length < 8) {
+			setErrors({ ...errors, confirmPassword: "Confirm Password too short" });
+		}
+		if (!(/[A-Z]/.test(confirmPassword))) {
+			setErrors({ ...errors, confirmPassword: "Must contain a uppercase letter" })
+		}
+		if (!/[a-z]/.test(confirmPassword)()) {
+			setErrors({ ...errors, confirmPassword: "Must contain a lowercase letter" })
+		}
+		if (!(/[0-9]/.test(confirmPassword))) {
+			setErrors({ ...errors, confirmPassword: "Must contain a number" })
+		}
+		if (confirmPassword.length !== 0) {
+			setErrors({ ...errors, confirmPassword: null });
+		}
+		if (confirmPassword !== password) {
+			setErrors({ ...errors, confirmPassword: "Passwords do not match" });
+		}
+
+		return !errors.confirmPassword;
+	}
+
+	const handleFirstNameChange = e => {
+		setFirstName(e.target.value);
+		firstNameValidation();
+	}
+	const handleLastNameChange = e => {
+		setLastName(e.target.value);
+		lastNameValidation();
+	}
+
+	const handleEmailChange = e => {
+		setEmail(e.target.value);
+		emailValidation();
+	}
+
 	const handlePasswordChange = (e) => {
 		const password = e.target.value;
 		setPassword(password);
-		validatePassword(password);
+		passwordValidation(password);
 	};
 
 	const handleConfirmPasswordChange = (e) => {
 		const confirmPassword = e.target.value;
 		setConfirmPassword(confirmPassword);
 		setIsPasswordMatch(password === confirmPassword);
+		confirmPasswordValidation();
 	};
 
 	const getValidationIcon = (isValid) => {
@@ -86,7 +185,7 @@ const Register = () => {
 				}
 				return res.data
 			})
-			.then(({ _id }) => {
+			.then(() => {
 				login({ email, password })
 					.then(res => {
 						if (res.error) {
@@ -146,24 +245,28 @@ const Register = () => {
 							{/* First name */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
+									onBlur={firstNameValidation}
+									helperText={errors.firstName}
+									error={errors.firstName}
 									className='form'
-									id="outlined-basic"
 									label="First Name"
 									variant="outlined"
 									type='text'
-									onChange={e => setFirstName(e.target.value)}
+									onChange={handleFirstNameChange}
 									value={firstName}
 								/>
 							</Grid>
 							{/* Last name */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
+									onBlur={lastNameValidation}
+									helperText={errors.lastName}
+									error={errors.lastName}
 									className='form'
-									id="outlined-basic"
 									label="Last Name"
 									variant="outlined"
 									type='text'
-									onChange={(e) => setLastName(e.target.value)}
+									onChange={handleLastNameChange}
 									value={lastName}
 								/>
 							</Grid>
@@ -172,11 +275,13 @@ const Register = () => {
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
 									className='form'
-									id="outlined-basic"
 									label="Email"
 									variant="outlined"
 									type='email'
-									onChange={(e) => setEmail(e.target.value)}
+									onBlur={emailValidation}
+									helperText={errors.email}
+									error={errors.email}
+									onChange={handleEmailChange}
 									value={email}
 								/>
 							</Grid>
@@ -209,6 +314,9 @@ const Register = () => {
 							{/* Password */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
+									onBlur={passwordValidation}
+									error={errors.password}
+									helperText={errors.password}
 									className='form'
 									label="Password"
 									variant="outlined"
@@ -237,6 +345,9 @@ const Register = () => {
 									type={visibleConfirmPassword ? 'text' : 'password'}
 									onChange={handleConfirmPasswordChange}
 									value={confirmPassword}
+									onBlur={confirmPasswordValidation}
+									error={errors.confirmPassword}
+									helperText={errors.confirmPassword}
 									// Password show icon
 									InputProps={{
 										endAdornment: (

@@ -8,11 +8,19 @@ import { useEffect } from 'react';
 import { useLoginMutation } from '../../redux/slices/authApiSlice'
 import { setAuthenticated, setToken } from '../../redux/slices/authSlice';
 import { showSnackBar } from '../../redux/slices/snackBarSlice';
+import { EMAIL_REGEX } from '../../constants';
 const Login = () => {
 
 	const [visible, setVisible] = useState(false);
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+
+	const [errors, setErrors] = useState({
+		email: null,
+		password: null
+	});
+
 	const [disabled, setDisabled] = useState(false);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
@@ -20,6 +28,35 @@ const Login = () => {
 	const { isAuthenticated } = useSelector(store => store.auth);
 	const [login] = useLoginMutation();
 
+	const validateEmail = () => {
+		if (email.length === 0) {
+			setErrors({ ...errors, email: "Email Required" })
+		} else {
+			setErrors({ ...errors, email: null })
+		}
+		if (!EMAIL_REGEX.test(email)) {
+			setErrors({ ...errors, email: "Invalid Email Format" })
+		} else {
+			setErrors({ ...errors, email: null })
+		}
+
+		return errors.email !== null
+	}
+
+	const validatePassword = () => {
+		if (password.length === 0) {
+			setErrors({
+				...errors, password: "Password Required"
+			})
+		} else {
+			setErrors({
+				...errors, password: null
+			})
+		}
+		return errors.password !== null
+	}
+
+	const buttonDisabled = () => (errors.email || errors.password);
 
 	useEffect(() => {
 		if (isAuthenticated) {
@@ -79,23 +116,34 @@ const Login = () => {
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
 									<TextField
+										error={errors.email}
+										onBlur={validateEmail}
 										className='form'
 										label="Email"
 										variant="outlined"
 										type='email'
 										onChange={(e) => setEmail(e.target.value)}
 										value={email}
+										helperText={errors.email}
+										sx={{
+											':focus': {
+												borderColor: '#ff5100'
+											}
+										}}
 									/>
 								</Grid>
 							</Grid>
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
 									<TextField
+										error={errors.password}
+										onBlur={validatePassword}
+										helperText={errors.password}
 										className='form'
 										label="Password"
 										variant="outlined"
 										type={visible ? 'text' : 'password'}
-										onChange={(e) => setPassword(e.target.value)}
+										onChange={(e) => { setPassword(e.target.value); validatePassword(); }}
 										value={password}
 										InputProps={{
 											endAdornment: (
@@ -112,8 +160,8 @@ const Login = () => {
 							<Grid item sx={{ marginTop: 10 }}>
 								<Button
 									sx={{
-										color: disabled ? 'rgba(0, 0, 0, 0.26)' : 'white',
-										backgroundColor: disabled ? '#e0e0e0' : '#ff5100',
+										color: buttonDisabled() ? 'rgba(0, 0, 0, 0.26)' : 'white',
+										backgroundColor: buttonDisabled() ? '#e0e0e0' : '#ff5100',
 										height: 55,
 										padding: '6px 16px',
 										width: '100%',
@@ -122,7 +170,7 @@ const Login = () => {
 											bgcolor: '#b23800'
 										}
 									}}
-									disabled={disabled}
+									disabled={buttonDisabled()}
 									type='submit'
 									className='submit-button'
 								>
