@@ -1,3 +1,4 @@
+// This slice manages the authentication state of the application, including the user's token, authentication status, and user details.
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

@@ -13,19 +13,18 @@ import { useLoginMutation } from '../../redux/slices/authApiSlice';
 import { EMAIL_REGEX } from '../../constants';
 
 const Register = () => {
-
 	const [visible, setVisible] = useState(false);
 	const [visibleConfirmPassword, setVisibleConfirmPassword] = useState(false);
 	const { isAuthenticated } = useSelector(store => store.auth);
 
-
-
-	// States for form data
-	const [firstName, setFirstName] = useState("");
-	const [lastName, setLastName] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+	// State for form data
+	const [formData, setFormData] = useState({
+		firstName: "",
+		lastName: "",
+		email: "",
+		password: "",
+		confirmPassword: ""
+	});
 
 	// State to check password and confirm password matches;
 	const [isPasswordMatch, setIsPasswordMatch] = useState(false);
@@ -36,6 +35,7 @@ const Register = () => {
 	const [hasLowerCase, setHasLowercase] = useState(false);
 	const [hasNumber, sethasNumber] = useState(false);
 
+	// State to store field validation errors
 	const [errors, setErrors] = useState({
 		firstName: null,
 		lastName: null,
@@ -46,8 +46,8 @@ const Register = () => {
 
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const [register] = useRegisterMutation();
-	const [login] = useLoginMutation();
+	const [register] = useRegisterMutation(); // RTK hook for registration
+	const [login] = useLoginMutation(); // RTK hook for logging in
 
 	const validatePassword = (password) => {
 		const has8Characters = password.length >= 8;
@@ -60,133 +60,130 @@ const Register = () => {
 		sethasNumber(hasNumber);
 	};
 
-	const firstNameValidation = () => {
-		if (firstName.length === 0) {
-			setErrors({ ...errors, firstName: "First Name Required" });
-		} else {
-			setErrors({ ...errors, firstName: null });
-		}
-		return firstName.length !== 0;
-	}
-
-	const lastNameValidation = () => {
-		if (lastName.length === 0) {
-			setErrors({ ...errors, lastName: "Last Name Required" });
-		} else {
-			setErrors({ ...errors, lastName: null });
-		}
-		return lastName.length !== 0;
-	}
-
-	const emailValidation = () => {
-		if (email.length === 0) {
-			setErrors({ ...errors, email: "Email Required" });
-		} else if (!EMAIL_REGEX.test(email)) {
-			setErrors({ ...errors, email: "Invalid Email Format" });
-		} else {
-			setErrors({ ...errors, email: null });
-		}
-		return email.length !== 0 && EMAIL_REGEX.test(email);
-	}
-
-	const passwordValidation = () => {
-		if (password.length === 0) {
-			setErrors({ ...errors, password: "New Password Required" });
-		}
-		if (!has8Characters) {
-			setErrors({ ...errors, password: "New Password too short" });
-		}
-		if (!hasUpperCase) {
-			setErrors({ ...errors, password: "Must contain a uppercase letter" })
-		}
-		if (!hasLowerCase) {
-			setErrors({ ...errors, password: "Must contain a lowercase letter" })
-		}
-		if (!hasNumber) {
-			setErrors({ ...errors, password: "Must contain a number" })
-		}
-		if (password.length !== 0) {
-			setErrors({ ...errors, password: null });
-		}
-		return !errors.password;
-	}
-
-	const confirmPasswordValidation = () => {
-		if (confirmPassword.length === 0) {
-			setErrors({ ...errors, confirmPassword: "New Confirm Password Required" });
-		}
-		if (confirmPassword.length < 8) {
-			setErrors({ ...errors, confirmPassword: "Confirm Password too short" });
-		}
-		if (!(/[A-Z]/.test(confirmPassword))) {
-			setErrors({ ...errors, confirmPassword: "Must contain a uppercase letter" })
-		}
-		if (!/[a-z]/.test(confirmPassword)()) {
-			setErrors({ ...errors, confirmPassword: "Must contain a lowercase letter" })
-		}
-		if (!(/[0-9]/.test(confirmPassword))) {
-			setErrors({ ...errors, confirmPassword: "Must contain a number" })
-		}
-		if (confirmPassword.length !== 0) {
-			setErrors({ ...errors, confirmPassword: null });
-		}
-		if (confirmPassword !== password) {
-			setErrors({ ...errors, confirmPassword: "Passwords do not match" });
-		}
-
-		return !errors.confirmPassword;
-	}
-
-	const handleFirstNameChange = e => {
-		setFirstName(e.target.value);
-		firstNameValidation();
-	}
-	const handleLastNameChange = e => {
-		setLastName(e.target.value);
-		lastNameValidation();
-	}
-
-	const handleEmailChange = e => {
-		setEmail(e.target.value);
-		emailValidation();
-	}
-
-	const handlePasswordChange = (e) => {
-		const password = e.target.value;
-		setPassword(password);
-		passwordValidation(password);
+	// Function to handle field changes
+	const handleFieldChange = (fieldName, value) => {
+		setFormData(prevState => {
+			switch (fieldName) {
+				case 'firstName':
+					return { ...prevState, firstName: value };
+				case 'lastName':
+					return { ...prevState, lastName: value };
+				case 'email':
+					return { ...prevState, email: value };
+				case 'password':
+					validatePassword(value);
+					// validateField('password');
+					return { ...prevState, password: value };
+				case 'confirmPassword':
+					// validateField('confirmPassword');
+					return { ...prevState, confirmPassword: value };
+				default:
+					return prevState;
+			}
+		});
 	};
 
-	const handleConfirmPasswordChange = (e) => {
-		const confirmPassword = e.target.value;
-		setConfirmPassword(confirmPassword);
-		setIsPasswordMatch(password === confirmPassword);
-		confirmPasswordValidation();
+	// General field validation function
+	const validateField = (field) => {
+		switch (field) {
+			case 'firstName':
+				if (formData.firstName.length === 0) {
+					setErrors(({ ...errors, firstName: "First Name Required" }));
+				} else {
+					setErrors(({ ...errors, firstName: null }));
+				}
+				return formData.firstName.length !== 0;
+
+			case 'lastName':
+				if (formData.lastName.length === 0) {
+					setErrors(({ ...errors, lastName: "Last Name Required" }));
+				} else {
+					setErrors(({ ...errors, lastName: null }));
+				}
+				return formData.lastName.length !== 0;
+
+			case 'email':
+				if (formData.email.length === 0) {
+					setErrors(({ ...errors, email: "Email Required" }));
+				} else if (!EMAIL_REGEX.test(formData.email)) {
+					setErrors(({ ...errors, email: "Invalid Email Format" }));
+				} else {
+					setErrors(({ ...errors, email: null }));
+				}
+				return formData.email.length !== 0 && EMAIL_REGEX.test(formData.email);
+
+			case 'password':
+				if (formData.password.length !== 0) {
+					setErrors(({ ...errors, password: null }));
+				}
+				if (!hasLowerCase) {
+					setErrors(({ ...errors, password: "Must contain a lowercase letter" }));
+				}
+				if (!hasNumber) {
+					setErrors(({ ...errors, password: "Must contain a number" }));
+				}
+				if (!hasUpperCase) {
+					setErrors(({ ...errors, password: "Must contain an uppercase letter" }));
+				}
+				if (!has8Characters) {
+					setErrors(({ ...errors, password: "New Password too short" }));
+				}
+				if (formData.password.length === 0) {
+					setErrors(({ ...errors, password: "New Password Required" }));
+				}
+				return !errors.password;
+
+			case 'confirmPassword':
+				if (formData.confirmPassword.length !== 0) {
+					setErrors(({ ...errors, confirmPassword: null }));
+				}
+				if (formData.confirmPassword !== formData.password) {
+					setErrors(({ ...errors, confirmPassword: "Passwords do not match" }));
+				}
+				if (!(/[0-9]/.test(formData.confirmPassword))) {
+					setErrors(({ ...errors, confirmPassword: "Must contain a number" }));
+				}
+				if (!/[a-z]/.test(formData.confirmPassword)) {
+					setErrors(({ ...errors, confirmPassword: "Must contain a lowercase letter" }));
+				}
+				if (!(/[A-Z]/.test(formData.confirmPassword))) {
+					setErrors(({ ...errors, confirmPassword: "Must contain an uppercase letter" }));
+				}
+				if (formData.confirmPassword.length < 8) {
+					setErrors(({ ...errors, confirmPassword: "Confirm Password too short" }));
+				}
+				if (formData.confirmPassword.length === 0) {
+					setErrors(({ ...errors, confirmPassword: "Confirm Password Required" }));
+				}
+				return !errors.confirmPassword;
+
+			default:
+				return true;
+		}
 	};
 
+	// Function to return password validation icons
 	const getValidationIcon = (isValid) => {
 		return isValid ? <CheckIcon sx={{ marginRight: '10px', color: '#ff5100' }} /> : <ErrorOutlineIcon sx={{ marginRight: '10px' }} />;
 	};
 
-	const buttonDisable = () => !(firstName.length > 0 && lastName.length > 0 && email.length > 0 && isPasswordMatch && has8Characters && hasUpperCase && hasLowerCase && hasNumber)
+	// Function to check if all fields are valid so that the register button is functional
+	const buttonDisable = () => !(formData.firstName.length > 0 && formData.lastName.length > 0 && formData.email.length > 0 && EMAIL_REGEX.test(formData.email) && isPasswordMatch && has8Characters && hasUpperCase && hasLowerCase && hasNumber)
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		register({
-			firstName,
-			lastName,
-			email,
-			password,
-			confirmPassword
-		})
+		// Register request to the API
+		register(formData)
 			.then(res => {
 				if (res.error) {
+					// Throw error from API
 					throw new Error(res.error.data.error.message)
 				}
 				return res.data
 			})
 			.then(() => {
-				login({ email, password })
+				//  If successfully registered, proceed  to make login request to the API
+				login({ email: formData.email, password: formData.password })
 					.then(res => {
 						if (res.error) {
 							throw new Error(res.error.data.error.message)
@@ -194,8 +191,9 @@ const Register = () => {
 						return res.data
 					})
 					.then(({ token }) => {
-						dispatch(setToken(token));
+						dispatch(setToken(token)); // Set token to the state
 						dispatch(setAuthenticated(true));
+						// Display Snackbar to show success 
 						dispatch(showSnackBar({
 							severity: "success",
 							message: "Successfully created an online account"
@@ -203,6 +201,7 @@ const Register = () => {
 						navigate("/")
 					})
 					.catch(e => {
+						// Set Snackbar to display error messages from login request
 						dispatch(showSnackBar({
 							severity: "error",
 							message: e.message
@@ -210,6 +209,7 @@ const Register = () => {
 					});
 			})
 			.catch(e => {
+				// Error message from Register request
 				dispatch(showSnackBar({
 					severity: "error",
 					message: e.message
@@ -218,6 +218,7 @@ const Register = () => {
 	}
 
 	useEffect(() => {
+		// If logged in already, redirect to Account page.
 		if (isAuthenticated) {
 			navigate("/user");
 		}
@@ -245,29 +246,29 @@ const Register = () => {
 							{/* First name */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
-									onBlur={firstNameValidation}
-									helperText={errors.firstName}
-									error={errors.firstName}
+									onBlur={() => validateField('firstName')}
+									helperText={errors.firstName || ""}
+									error={!!errors.firstName}
 									className='form'
 									label="First Name"
 									variant="outlined"
 									type='text'
-									onChange={handleFirstNameChange}
-									value={firstName}
+									onChange={e => handleFieldChange('firstName', e.target.value)}
+									value={formData.firstName}
 								/>
 							</Grid>
 							{/* Last name */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
-									onBlur={lastNameValidation}
-									helperText={errors.lastName}
-									error={errors.lastName}
+									onBlur={() => validateField('lastName')}
+									helperText={errors.lastName || ""}
+									error={!!errors.lastName}
 									className='form'
 									label="Last Name"
 									variant="outlined"
 									type='text'
-									onChange={handleLastNameChange}
-									value={lastName}
+									onChange={e => handleFieldChange('lastName', e.target.value)}
+									value={formData.lastName}
 								/>
 							</Grid>
 
@@ -278,15 +279,16 @@ const Register = () => {
 									label="Email"
 									variant="outlined"
 									type='email'
-									onBlur={emailValidation}
-									helperText={errors.email}
-									error={errors.email}
-									onChange={handleEmailChange}
-									value={email}
+									onBlur={() => validateField('email')}
+									helperText={errors.email || ""}
+									error={!!errors.email}
+									onChange={e => handleFieldChange('email', e.target.value)}
+									value={formData.email}
 								/>
 							</Grid>
+
+							{/* Password Validation Display */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
-								{/* Password Valdation Disply */}
 								<Typography variant='h5' sx={{ marginBottom: '15px', fontSize: '1.125rem', fontWeight: 400 }}>
 									Password must contain at least:
 								</Typography>
@@ -311,18 +313,21 @@ const Register = () => {
 									<Typography variant='p' color='#1976d2' >1 number</Typography>
 								</Box>
 							</Grid>
+
 							{/* Password */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<TextField
-									onBlur={passwordValidation}
-									error={errors.password}
-									helperText={errors.password}
+									onBlur={() => validateField('password')}
+									error={!!errors.password}
+									helperText={errors.password || ""}
 									className='form'
 									label="Password"
 									variant="outlined"
-									type={visible ? 'text' : 'password'}
-									onChange={handlePasswordChange}
-									value={password}
+									type={visible ? 'text' : 'password'} // Toggle visibility
+									onChange={e => {
+										handleFieldChange('password', e.target.value);
+									}}
+									value={formData.password}
 									// Password show icon
 									InputProps={{
 										endAdornment: (
@@ -342,12 +347,15 @@ const Register = () => {
 									className='form'
 									label="Confirm Password"
 									variant="outlined"
-									type={visibleConfirmPassword ? 'text' : 'password'}
-									onChange={handleConfirmPasswordChange}
-									value={confirmPassword}
-									onBlur={confirmPasswordValidation}
-									error={errors.confirmPassword}
-									helperText={errors.confirmPassword}
+									type={visibleConfirmPassword ? 'text' : 'password'} // Toggle visibility
+									onChange={e => {
+										handleFieldChange('confirmPassword', e.target.value);
+										setIsPasswordMatch(formData.password === e.target.value);
+									}}
+									value={formData.confirmPassword}
+									onBlur={() => validateField('confirmPassword')}
+									error={!!errors.confirmPassword}
+									helperText={errors.confirmPassword || ""}
 									// Password show icon
 									InputProps={{
 										endAdornment: (
@@ -360,6 +368,7 @@ const Register = () => {
 									}}
 								/>
 							</Grid>
+
 							{/* Submit button */}
 							<Grid item sx={{ width: 400, padding: 0 }}>
 								<Button

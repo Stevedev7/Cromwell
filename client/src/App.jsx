@@ -4,6 +4,7 @@ import './App.css';
 function App() {
   const [iseServerRunning, setIseServerRunning] = useState(false);
 
+  // Check if the backend server is running
   useEffect(() => {
     fetch(`/api/ping`)
       .then(res => res.json())
@@ -14,6 +15,7 @@ function App() {
       });
   }, [iseServerRunning]);
 
+  // Render the following if api is not running
   if (!iseServerRunning) {
     return <>
       <h1>Please start the server.</h1>

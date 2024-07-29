@@ -17,13 +17,16 @@ const Logo = ({ image, className = "", onClick }) => {
 
 const Header = () => {
 	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check if the screen size is mobile
 	const navigate = useNavigate();
+
+	// Redux states
 	const { isAuthenticated, token, userDetails } = useSelector(state => state.auth);
-	const [getUserDetails] = useLazyGetUserQuery();
+	const [getUserDetails] = useLazyGetUserQuery(); // RTK hook to get user data
 	const dispatch = useDispatch();
 
 
+	// State from redux store for the Toast or Snackbar
 	const { open, severity, message } = useSelector(state => state.snackBar);
 
 	useEffect(() => {
@@ -57,6 +60,7 @@ const Header = () => {
 			.catch(e => console.log(e))
 	}, [token, isAuthenticated]);
 
+	// Display and hide Snackbar
 	useEffect(() => {
 		setTimeout(() => dispatch(hideSnackBar()), 5000);
 	}, [open]);

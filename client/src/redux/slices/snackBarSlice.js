@@ -1,3 +1,4 @@
+// This slice manages the state of a snackbar notification, including its visibility, message content, and severity level.
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

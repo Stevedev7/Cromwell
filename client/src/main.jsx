@@ -1,23 +1,21 @@
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { store } from './redux/store';
 import App from './App.jsx';
 import Login from './components/Login';
-import './index.css';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
 import Header from './components/Header';
 import Register from './components/Register';
-import { store } from './redux/store';
-import { Provider } from 'react-redux';
 import Account from './components/Account';
+import './index.css';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Header />,
+    element: <Header />, // Renders Navbar. The Header component includes <Outlet /> to render other components below "/"
     children: [
+      // Renders Home page at "/"
       {
         path: "/",
         element: <div className="container">
@@ -25,18 +23,21 @@ const router = createBrowserRouter([
         </div>,
       },
       {
+        // Renders Login form at "/login"
         path: "/login",
         element: <div className='container'>
           <Login />
         </div>
       },
       {
+        // Renders Register form at "/register"
         path: "/register",
         element: <div className='container'>
           <Register />
         </div>
       },
       {
+        // Renders Account component that displays user data at "/user"
         path: "/user",
         element: <div className='container'>
           <Account />
@@ -47,9 +48,9 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
+  <StrictMode>
+    <Provider store={store}> {/* Global redux store for the app for state management */}
+      <RouterProvider router={router} /> {/* Use React router for routing. */}
     </Provider>
-  </React.StrictMode>,
+  </StrictMode>,
 )

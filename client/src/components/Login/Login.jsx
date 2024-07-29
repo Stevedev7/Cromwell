@@ -9,54 +9,67 @@ import { useLoginMutation } from '../../redux/slices/authApiSlice'
 import { setAuthenticated, setToken } from '../../redux/slices/authSlice';
 import { showSnackBar } from '../../redux/slices/snackBarSlice';
 import { EMAIL_REGEX } from '../../constants';
+
 const Login = () => {
 
-	const [visible, setVisible] = useState(false);
+	const [visible, setVisible] = useState(false); // State for password visibility
 
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	// State for form data
+	const [formData, setFormData] = useState({
+		email: "",
+		password: ""
+	});
 
+	// State for field validation errors
 	const [errors, setErrors] = useState({
 		email: null,
 		password: null
 	});
 
-	const [disabled, setDisabled] = useState(false);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
 	const { isAuthenticated } = useSelector(store => store.auth);
-	const [login] = useLoginMutation();
+	const [login] = useLoginMutation(); // RTK hook for login
 
-	const validateEmail = () => {
-		if (email.length === 0) {
-			setErrors({ ...errors, email: "Email Required" })
-		} else {
-			setErrors({ ...errors, email: null })
+	// Function to handle field changes
+	const handleFieldChange = (fieldName, value) => {
+		setFormData(prevState => ({
+			...prevState,
+			[fieldName]: value
+		}));
+
+		validateField(fieldName);
+	};
+
+	// Field validation function
+	const validateField = (fieldName) => {
+		switch (fieldName) {
+			case 'email':
+				if (formData.email.length === 0) {
+					setErrors({ ...errors, email: "Email Required" });
+				} else {
+					setErrors({ ...errors, email: null });
+				}
+				if (!EMAIL_REGEX.test(formData.email)) {
+					setErrors({ ...errors, email: "Invalid Email Format" });
+				} else {
+					setErrors({ ...errors, email: null });
+				}
+				break;
+			case 'password':
+				if (formData.password.length === 0) {
+					setErrors({ ...errors, password: "Password Required" });
+				} else {
+					setErrors({ ...errors, password: null });
+				}
+				break;
+			default:
+				break;
 		}
-		if (!EMAIL_REGEX.test(email)) {
-			setErrors({ ...errors, email: "Invalid Email Format" })
-		} else {
-			setErrors({ ...errors, email: null })
-		}
+	};
 
-		return errors.email !== null
-	}
-
-	const validatePassword = () => {
-		if (password.length === 0) {
-			setErrors({
-				...errors, password: "Password Required"
-			})
-		} else {
-			setErrors({
-				...errors, password: null
-			})
-		}
-		return errors.password !== null
-	}
-
-	const buttonDisabled = () => (errors.email || errors.password);
+	const buttonDisabled = () => !(formData.email.length > 0 && EMAIL_REGEX.test(formData.email) && formData.password.length > 0);
 
 	useEffect(() => {
 		if (isAuthenticated) {
@@ -66,7 +79,7 @@ const Login = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		login({ email, password })
+		login({ email: formData.email, password: formData.password })
 			.then(res => {
 				if (res.error) {
 					throw new Error(res.error.data.error.message)
@@ -111,19 +124,22 @@ const Login = () => {
 							</Link>
 						</Typography>
 					</Grid>
+					{/* Login form */}
 					<Grid item container spacing={1} >
 						<Form onSubmit={handleSubmit}>
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
+									{/* Email */}
 									<TextField
-										error={errors.email}
-										onBlur={validateEmail}
+										error={!!errors.email}
+										onBlur={() => validateField('email')}
 										className='form'
 										label="Email"
 										variant="outlined"
 										type='email'
-										onChange={(e) => setEmail(e.target.value)}
-										value={email}
+										name="email"
+										onChange={(e) => handleFieldChange('email', e.target.value)}
+										value={formData.email}
 										helperText={errors.email}
 										sx={{
 											':focus': {
@@ -135,16 +151,18 @@ const Login = () => {
 							</Grid>
 							<Grid container spacing={1} style={{ width: 400, margin: '10px 0px 0px 0px' }}>
 								<Grid item style={{ width: 400, padding: 0 }}>
+									{/* Password */}
 									<TextField
-										error={errors.password}
-										onBlur={validatePassword}
+										error={!!errors.password}
+										onBlur={() => validateField('password')}
 										helperText={errors.password}
 										className='form'
 										label="Password"
 										variant="outlined"
 										type={visible ? 'text' : 'password'}
-										onChange={(e) => { setPassword(e.target.value); validatePassword(); }}
-										value={password}
+										name="password"
+										onChange={(e) => handleFieldChange('password', e.target.value)}
+										value={formData.password}
 										InputProps={{
 											endAdornment: (
 												<InputAdornment position="end">
@@ -157,6 +175,7 @@ const Login = () => {
 									/>
 								</Grid>
 							</Grid>
+							{/* Submit button */}
 							<Grid item sx={{ marginTop: 10 }}>
 								<Button
 									sx={{

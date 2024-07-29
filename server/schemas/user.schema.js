@@ -2,11 +2,11 @@ const Joi = require('joi');
 
 const registerSchema = Joi.object({
 	firstName: Joi.string()
-		.min(3)
+		.min(1)
 		.max(50)
 		.required(),
 	lastName: Joi.string()
-		.min(3)
+		.min(1)
 		.max(50)
 		.required(),
 	email: Joi.string()

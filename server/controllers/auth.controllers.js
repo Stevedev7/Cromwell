@@ -9,6 +9,7 @@ const login = async (req, res, next) => {
 	try {
 		await loginSchema.validateAsync({ email, password: passwordInput });
 
+		// Check if user exists
 		const user = await findUserByEmail(email);
 		if (!user) {
 			return res.status(401).json({
@@ -18,6 +19,7 @@ const login = async (req, res, next) => {
 			});
 		}
 
+		// Check if password matches
 		const isMatch = await bcrypt.compare(passwordInput, user.password);
 
 		if (!isMatch) {
@@ -38,6 +40,7 @@ const login = async (req, res, next) => {
 
 		res.status(200).json({ message: "Logged in.", token });
 	} catch (e) {
+		// Validation error
 		if (e.isJoi) {
 			return res.status(400).json({
 				error: {
